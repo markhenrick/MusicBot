@@ -116,6 +116,19 @@ public class NowplayingHandler {
 		}
 	}
 
+	public void sendNewTrackMessage(long guildId, AudioHandler handler) {
+		Guild guild = bot.getJDA().getGuildById(guildId);
+		if (guild == null)
+			return;
+		Settings settings = bot.getSettingsManager().getSettings(guildId);
+		TextChannel tchan = settings.getTextChannel(guild);
+		if (tchan != null && guild.getSelfMember().hasPermission(tchan, Permission.MESSAGE_WRITE)) {
+			var m = handler.getNowPlaying(bot.getJDA());
+			tchan.sendMessage(m)
+				.queue(this::setLastNPMessage);
+		}
+	}
+
 	// "event"-based methods
 	public void onTrackUpdate(long guildId, AudioTrack track, AudioHandler handler) {
 		// update bot status if applicable
@@ -128,6 +141,7 @@ public class NowplayingHandler {
 
 		// update channel topic if applicable
 		updateTopic(guildId, handler, false);
+		sendNewTrackMessage(guildId, handler);
 	}
 
 	public void onMessageDelete(Guild guild, long messageId) {
