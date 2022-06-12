@@ -124,8 +124,10 @@ public class NowplayingHandler {
 		TextChannel tchan = settings.getTextChannel(guild);
 		if (tchan != null && guild.getSelfMember().hasPermission(tchan, Permission.MESSAGE_WRITE)) {
 			var m = handler.getNowPlaying(bot.getJDA());
-			tchan.sendMessage(m)
-				.queue(this::setLastNPMessage);
+			if (m != null) {
+				tchan.sendMessage(m)
+					.queue(this::setLastNPMessage);
+			}
 		}
 	}
 
