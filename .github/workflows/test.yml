@@ -3,6 +3,7 @@ on:
   push:
     branches:
     - master
+    - mark-changes
 
 jobs:
   build:
