@@ -19,10 +19,6 @@ import com.jagrosh.jmusicbot.Bot;
 import com.jagrosh.jmusicbot.entities.Pair;
 import com.jagrosh.jmusicbot.settings.Settings;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
@@ -30,6 +26,11 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.exceptions.RateLimitedException;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -131,6 +132,18 @@ public class NowplayingHandler
             }
         }
     }
+
+    public void sendNewTrackMessage(long guildId, AudioHandler audioHandler)
+    {
+        var guild = bot.getJDA().getGuildById(guildId);
+        if (guild == null) return;
+        var settings = bot.getSettingsManager().getSettings(guildId);
+        var tchan = settings.getTextChannel(guild);
+        if (tchan == null || !guild.getSelfMember().hasPermission(tchan, Permission.MESSAGE_WRITE)) return;
+        var m = audioHandler.getNowPlaying(bot.getJDA());
+        if (m == null) return;
+        tchan.sendMessage(m).queue(this::setLastNPMessage);
+    }
     
     // "event"-based methods
     public void onTrackUpdate(long guildId, AudioTrack track, AudioHandler handler)
@@ -146,6 +159,7 @@ public class NowplayingHandler
         
         // update channel topic if applicable
         updateTopic(guildId, handler, false);
+        sendNewTrackMessage(guildId, handler);
     }
     
     public void onMessageDelete(Guild guild, long messageId)
